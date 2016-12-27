@@ -1,0 +1,6 @@
+.idea
+.vs
+CMakeLists.txt
+
+build
+output
