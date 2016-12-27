@@ -116,16 +116,48 @@ bool g_bNew3DS = false;
 u32 g_uAddress = ADDRESS_NON_NEW_3DS;
 u32 g_uFontAddress = 0;
 s32 g_nCurrentLine = 1;
+PrintConsole *g_TopConsole;
+PrintConsole *g_BottomConsole;
 
 void clearOutput()
 {
+	consoleSelect(g_BottomConsole);
 	static const char* c_pLine = "                                        ";
-	for (s32 i = 13; i < 25; i++)
+	for (s32 i = 1; i < 15; i++)
 	{
 		printf("\E[%d;0H%s", i, c_pLine);
 	}
-	g_nCurrentLine = 13;
+	g_nCurrentLine = 1;
 	printf("\E[%d;0H", g_nCurrentLine);
+}
+
+void printFontType(SharedFontType a_eType)
+{
+	consoleSelect(g_TopConsole);
+	printf("\E[11;0H");
+	printf("目前系统字体类型: ");
+	switch (a_eType)
+	{
+	case SHARED_FONT_TYPE_NULL:
+		printf("null");
+		break;
+	case SHARED_FONT_TYPE_STD:
+		printf("标准");
+		break;
+	case SHARED_FONT_TYPE_CN:
+		printf("简中");
+		break;
+	case SHARED_FONT_TYPE_KR:
+		printf("韩语");
+		break;
+	case SHARED_FONT_TYPE_TW:
+		printf("繁中");
+		break;
+	default:
+		printf("未知");
+		break;
+	}
+	printf("\n");
 }
 
 static inline bool isMemoryAddressWithinGSP(u32 a_uAddress)
@@ -246,7 +278,29 @@ u32 changeSharedFont(SharedFontType a_eType)
 		printf("\E[0m");
 		c_nTextColor = 32;
 	}
-	printf("\E[%d;0H""开始更改系统字体 %d\n", g_nCurrentLine++, a_eType);
+	printf("\E[%d;0H""开始更改系统字体为", g_nCurrentLine++);
+	switch (a_eType)
+	{
+	case SHARED_FONT_TYPE_NULL:
+		printf("null\n");
+		break;
+	case SHARED_FONT_TYPE_STD:
+		printf("标准\n");
+		break;
+	case SHARED_FONT_TYPE_CN:
+		printf("简中\n");
+		break;
+	case SHARED_FONT_TYPE_KR:
+		printf("韩语\n");
+		break;
+	case SHARED_FONT_TYPE_TW:
+		printf("繁中\n");
+		break;
+	default:
+		printf("未知\n");
+		break;
+	}
+	printf("\n");
 	FILE* fp = fopen(c_kPath[a_eType], "rb");
 	if (fp == NULL)
 	{
@@ -294,16 +348,20 @@ u32 changeSharedFont(SharedFontType a_eType)
 	}
 	memoryCopy((void*)g_uAddress, (void*)g_uFontAddress, (sizeof(SharedFontBufferHeader) + uFileSize + g_kBufferSize - 1) / g_kBufferSize * g_kBufferSize);
 	printf("\E[%d;0H""更换字体成功\n", g_nCurrentLine++);
+	printFontType(a_eType);
 	return 0;
 }
 
 int main(int argc, char* argv[])
 {
 	gfxInitDefault();
-	consoleInit(GFX_TOP, NULL);
-	printf("\E[%d;0H""Shared Font Tool v1.2 汉化版\n", g_nCurrentLine++);
-	printf("\E[%d;0H""youxijihe.com汉化\n", g_nCurrentLine++);
-	printf("\E[%d;0H""按START : 退出\n", g_nCurrentLine++);
+	g_TopConsole = consoleInit(GFX_TOP, NULL);
+	g_BottomConsole = consoleInit(GFX_BOTTOM, NULL);
+
+	consoleSelect(g_TopConsole);
+	printf("\E[%d;0H""系统字体更换工具v1.2\n", g_nCurrentLine++);
+	printf("\E[0;33m""youxijihe.com\E[0m汉化\n");
+	printf("按START : 退出\n");
 	u32 uKernelVersion = 0;
 	uKernelVersion = osGetKernelVersion();
 	if (uKernelVersion > SYSTEM_VERSION(2, 44, 6))
@@ -322,30 +380,8 @@ int main(int argc, char* argv[])
 		g_uAddress = ADDRESS_NEW_3DS;
 	}
 	initSharedFontType();
-	printf("\E[11;0H");
-	printf("目前系统字体类型: ");
-	switch (g_uSharedFontType)
-	{
-	case SHARED_FONT_TYPE_NULL:
-		printf("null");
-		break;
-	case SHARED_FONT_TYPE_STD:
-		printf("标准");
-		break;
-	case SHARED_FONT_TYPE_CN:
-		printf("简中");
-		break;
-	case SHARED_FONT_TYPE_KR:
-		printf("韩语");
-		break;
-	case SHARED_FONT_TYPE_TW:
-		printf("繁中");
-		break;
-	default:
-		printf("未知");
-		break;
-	}
-	printf("\n");
+	
+	printFontType(g_uSharedFontType);
 	bool bCanRecover = false;
 	bool bCanChangeToCN = false;
 	bool bCanChangeToTW = false;
