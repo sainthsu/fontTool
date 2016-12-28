@@ -135,29 +135,28 @@ void printFontType(SharedFontType a_eType)
 {
 	consoleSelect(g_TopConsole);
 	printf("\E[11;0H");
-	printf("目前系统字体类型: ");
+	printf("默认系统字体类型: ");
 	switch (a_eType)
 	{
 	case SHARED_FONT_TYPE_NULL:
-		printf("null");
+		printf("null\n");
 		break;
 	case SHARED_FONT_TYPE_STD:
-		printf("标准");
+		printf("标准\n");
 		break;
 	case SHARED_FONT_TYPE_CN:
-		printf("简中");
+		printf("简中\n");
 		break;
 	case SHARED_FONT_TYPE_KR:
-		printf("韩语");
+		printf("韩语\n");
 		break;
 	case SHARED_FONT_TYPE_TW:
-		printf("繁中");
+		printf("繁中\n");
 		break;
 	default:
-		printf("未知");
+		printf("未知\n");
 		break;
 	}
-	printf("\n");
 }
 
 static inline bool isMemoryAddressWithinGSP(u32 a_uAddress)
@@ -313,7 +312,7 @@ u32 changeSharedFont(SharedFontType a_eType)
 	if (uFileSize > g_kSharedFontMemorySize - sizeof(SharedFontBufferHeader))
 	{
 		fclose(fp);
-		printf("\E[%d;0H""字体大小 0x%X > 0x%08X\n", g_nCurrentLine++, uFileSize, g_kSharedFontMemorySize - sizeof(SharedFontBufferHeader));
+		printf("\E[%d;0H""字体过大 0x%X > 0x%08X\n", g_nCurrentLine++, uFileSize, g_kSharedFontMemorySize - sizeof(SharedFontBufferHeader));
 		return 3;
 	}
 	fseek(fp, 0, SEEK_SET);
@@ -348,7 +347,7 @@ u32 changeSharedFont(SharedFontType a_eType)
 	}
 	memoryCopy((void*)g_uAddress, (void*)g_uFontAddress, (sizeof(SharedFontBufferHeader) + uFileSize + g_kBufferSize - 1) / g_kBufferSize * g_kBufferSize);
 	printf("\E[%d;0H""更换字体成功\n", g_nCurrentLine++);
-	printFontType(a_eType);
+
 	return 0;
 }
 
